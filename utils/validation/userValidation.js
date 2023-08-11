@@ -1,11 +1,10 @@
 import joi from 'joi';
-import { USER_TYPES } from '../../constants/authConstants';
-import { USER_TYPES } from '../../constants/authConstants';
-import { convertObjectToEnum } from '../common';
-import { convertObjectToEnum } from '../../utils/common'
+import { USER_TYPES } from '../../constants/authConstants.js';
+import { convertObjectToEnum } from '../common.js';
+
 
 // Validation of keys and properties of user
-export const schemaKeys = joi.object({
+export default  joi.object({
   username: joi.string().allow(null).allow(''),
   password: joi.string().allow(null).allow(''),
   email: joi.string().allow(null).allow(''),

@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
-import userSchema from '../../models/user';
+import userSchema from '../../models/user.js';
 
 /**
  * @description : Add new product to cart 

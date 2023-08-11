@@ -18,7 +18,8 @@ app.use(cookieParser());
 dbConnect();
 
 // Import and use your routes here
-// ...
+import router from "./routes/index.js";
+app.use(router);
 
 // Not Found Middleware
 app.use((req, res, next) => {

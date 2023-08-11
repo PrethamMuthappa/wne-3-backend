@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
-import UserSchema from '../../models/user';
-import IdValidate from '../../utils/validation/idValidation';
+import UserSchema from '../../models/user.js';
+import IdValidate from '../../utils/validation/idValidation.js';
 
 /**
  * @description : List all users present in the database

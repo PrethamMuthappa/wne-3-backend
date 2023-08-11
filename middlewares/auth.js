@@ -1,4 +1,4 @@
-import UserSchema from '../models/user';
+import UserSchema from '../models/user.js';
 import jwt from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
 

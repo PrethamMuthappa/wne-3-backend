@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
-import orderSchema from '../../models/order';
-import IdValidate from '../../utils/validation/idValidation';
+import orderSchema from '../../models/order.js';
+import IdValidate from '../../utils/validation/idValidation.js';
 
 /**
  * @description : List of all orders 

@@ -1,6 +1,6 @@
-import productSchema from '../../models/product';
+import productSchema from '../../models/product.js';
 import asyncHandler from 'express-async-handler';
-import validateId from '../../utils/validation/idValidation';
+import validateId from '../../utils/validation/idValidation.js';
 import slugify from 'slugify';
 
 // add new product

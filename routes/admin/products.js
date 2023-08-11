@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import * as productController from '../../controllers/admin/productController';
-import { isAdmin, authMiddleware } from '../../middlewares/auth';
-import * as productModel from '../../models/product';
+import * as productController from '../../controllers/admin/productController.js';
+import { isAdmin, authMiddleware } from '../../middlewares/auth.js';
+import * as productModel from '../../models/product.js';
 
 const router = Router();
 

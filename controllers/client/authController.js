@@ -1,8 +1,8 @@
 import asyncHandler from 'express-async-handler';
-import { generateToken } from '../../config/jwtToken';
-import UserSchema from '../../models/user';
-import UserSchemaKey from '../../utils/validation/userValidation';
-import generateRefreshToken from '../../config/refreshToken';
+import { generateToken } from '../../config/jwtToken.js';
+import UserSchema from '../../models/user.js';
+import schemaKeys from '../../utils/validation/userValidation.js';
+import generateRefreshToken from '../../config/refreshToken.js';
 import jwt from 'jsonwebtoken';
 
 /**

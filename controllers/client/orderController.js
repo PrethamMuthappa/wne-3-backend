@@ -1,8 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
-import userSchema from '../../models/user';
-import orderSchema from '../../models/order';
-import IdValidate from '../../utils/validation/idValidation';
+import userSchema from '../../models/user.js';
+import orderSchema from '../../models/order.js';
+import IdValidate from '../../utils/validation/idValidation.js';
 
 /**
  * @description : user new order  
