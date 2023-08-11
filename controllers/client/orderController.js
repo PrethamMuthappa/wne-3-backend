@@ -1,26 +1,25 @@
-const asyncHandler = require('express-async-handler');
-const jwt = require('jsonwebtoken');
-const userSchema = require('../../models/user');
-const orderSchema = require('../../models/order');
-const IdValidate = require('../../utils/validation/idValidation');
-
+import asyncHandler from 'express-async-handler';
+import jwt from 'jsonwebtoken';
+import userSchema from '../../models/user';
+import orderSchema from '../../models/order';
+import IdValidate from '../../utils/validation/idValidation';
 
 /**
  * @description : user new order  
- * @access:public
- * @param {object} req:request for new order
- * @param {object} res:response for new order
- * @return {object} :response for order {status,message,data}
+ * @access: public
+ * @param {object} req: request for new order
+ * @param {object} res: response for new order
+ * @return {object} : response for order {status, message, data}
  */
-const newOrder = asyncHandler(async(req,res)=>{
+export const newOrder = asyncHandler(async (req, res) => {
     try {
         const user = req.user;
-        const data = new orderSchema({...req.body});
+        const data = new orderSchema({ ...req.body });
         const result = await data.save();
         res.json({
-            message:'Order Placed Successfully',
-            orderId:result.id
-        })
+            message: 'Order Placed Successfully',
+            orderId: result.id
+        });
     } catch (error) {
         throw new Error(error);
     }
@@ -28,53 +27,51 @@ const newOrder = asyncHandler(async(req,res)=>{
 
 /**
  * @description : Get order details
- * @access:public
- * @param {object} req:request for order details
- * @param {object} res:response for order details
- * @return {object} :response for order details {status,message,data}
+ * @access: public
+ * @param {object} req: request for order details
+ * @param {object} res: response for order details
+ * @return {object} : response for order details {status, message, data}
  */
-const orderDetails = asyncHandler(async(req,res)=>{
+export const orderDetails = asyncHandler(async (req, res) => {
     try {
-        const user  = req.user;
-        const {order_id} = req.query;
+        const user = req.user;
+        const { order_id } = req.query;
         IdValidate(order_id);
         const checkOrderId = await orderSchema.findById(order_id);
-        if(checkOrderId.customerId != user.id){
+        if (checkOrderId.customerId != user.id) {
             res.json({
-                message:'Invalid order Id'
-            })
+                message: 'Invalid order Id'
+            });
         }
-        const  {_id,customerId,__v,...responseData} = checkOrderId.toObject();
+        const { _id, customerId, __v, ...responseData } = checkOrderId.toObject();
         const modifiedResponseData = { orderId: _id, ...responseData };
         res.json({
-            data:modifiedResponseData
-        })
-       
+            data: modifiedResponseData
+        });
     } catch (error) {
         throw new Error(error);
     }
-})
+});
 
 /**
  * @description : user order cancellation 
- * @access:public
- * @param {object} req:request for cancellation
- * @param {object} res:response for cancellation
- * @return {object} :response for cancellation {status,message,data}
+ * @access: public
+ * @param {object} req: request for cancellation
+ * @param {object} res: response for cancellation
+ * @return {object} : response for cancellation {status, message, data}
  */
-const cancelOrder = asyncHandler(async(req,res)=>{
-   try {
-    res.json({
-        message:'your order cancelled successfully'
-    });
-   } catch (error) {
-    throw new Error(error);
-   }
+export const cancelOrder = asyncHandler(async (req, res) => {
+    try {
+        res.json({
+            message: 'Your order has been cancelled successfully'
+        });
+    } catch (error) {
+        throw new Error(error);
+    }
 });
 
-
-module.exports = {
+export default {
     newOrder,
     cancelOrder,
     orderDetails
-}
+};

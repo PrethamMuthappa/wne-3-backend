@@ -1,36 +1,43 @@
-// import required packages
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import dbConnect from './config/db.js'; // Make sure the path is correct
 
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv').config();
-const morgan = require('morgan');
-const corsOptions = {origin:process.env.ALLOW_ORIGIN}
-const dbConnect = require('./config/db');
-const cookieParser = require('cookie-parser');
-// create instance for express
+// Import your routes and other modules
+
+dotenv.config();
 const app = express();
 
-// database connection
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(cookieParser());
+
+// Connect to the database
 dbConnect();
 
+// Import and use your routes here
+// ...
 
-// all routes
-const routes = require('./routes');
-const { notFound, errorHandler } = require('./middlewares/errorHandler');
+// Not Found Middleware
+app.use((req, res, next) => {
+  const error = new Error(`Not Found: ${req.originalUrl}`);
+  res.status(404);
+  next(error);
+});
 
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(statusCode);
+  res.json({
+    message: err.message,
+  });
+});
 
-app.use(morgan('dev'));
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({extended:true}));
-app.use(cookieParser())
-app.use(routes);
+const PORT = process.env.PORT || 3000;
 
-// middlewares
-app.use(notFound);
-app.use(errorHandler);
-
-// run server
-app.listen(process.env.PORT || 4000,()=>{
-    console.log(`Server is running at PORT ${process.env.PORT}`)
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

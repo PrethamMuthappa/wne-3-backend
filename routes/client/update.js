@@ -1,8 +1,9 @@
-const { update } = require('../../controllers/client/updateController');
-const authMiddleware = require('../../middlewares/auth');
-const router = require('express').Router();
+import { Router } from 'express';
+import { update } from '../../controllers/client/updateController';
+import * as authMiddleware from '../../middlewares/auth';
 
-router.put('/update/:id',authMiddleware.authMiddleware,update)
+const router = Router();
 
+router.put('/update/:id', authMiddleware.authMiddleware, update);
 
-module.exports = router
+export default router;
