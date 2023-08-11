@@ -1,8 +1,8 @@
-const router = require('express').Router();
+import { Router } from 'express';
 
+const router = Router();
 
 router.use(require('./client/index'));
 router.use(require('./admin/index'));
 
-
-module.exports = router;
+export default router;

@@ -1,11 +1,9 @@
-const router = require('express').Router();
+import { Router } from 'express';
 
+const router = Router();
 
-router.use('/admin',require('./userRoutes'));
-router.use('/api/product',require('./products'));
-router.use('/admin/orders/',require('./orders'));
+router.use('/admin', require('./userRoutes'));
+router.use('/api/product', require('./products'));
+router.use('/admin/orders/', require('./orders'));
 
-
-
-
-module.exports = router;
+export default router;
