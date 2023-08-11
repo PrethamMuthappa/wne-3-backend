@@ -1,42 +1,42 @@
-const asyncHandler = require('express-async-handler');
-const UserSchema = require('../../models/user');
-const IdValidate = require('../../utils/validation/idValidation');
-
+import asyncHandler from 'express-async-handler';
+import UserSchema from '../../models/user.js';
+import IdValidate from '../../utils/validation/idValidation.js';
 
 /**
- * @description : user update 
- * @access:public
- * @param {object} req:request for update
- * @param {object} res:response for update
- * @return {object} :response for register {status,message,data}
+ * @description : User update 
+ * @access: public
+ * @param {object} req: request for update
+ * @param {object} res: response for update
+ * @return {object} : response for update {status, message, data}
  */
-const update = asyncHandler(async(req,res)=>{
+export const update = asyncHandler(async (req, res) => {
     const user = req.user;
-    const {id} = req.params;
+    const { id } = req.params;
     const data = req.body;
+
     IdValidate(id);
+
     try {
-        if(id == user.id &&  data.hasOwnProperty('userType')==false){
+        if (id == user.id && !data.hasOwnProperty('userType')) {
             const result = await UserSchema.findByIdAndUpdate(
                 id,
                 data,
-                {new:true});
+                { new: true }
+            );
+
             res.json({
-                data:result
-            })
-        }
-        else{
+                data: result
+            });
+        } else {
             res.json({
-                message:'forbidden'
-            })
+                message: 'Forbidden'
+            });
         }
-        
     } catch (error) {
-        throw new Error(error)
+        throw new Error(error);
     }
 });
 
-
-module.exports = {
+export default {
     update
-}
+};

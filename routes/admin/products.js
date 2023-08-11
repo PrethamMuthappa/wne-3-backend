@@ -1,14 +1,15 @@
-const router = require('express').Router();
-const productController = require('../../controllers/admin/productController');
-const { isAdmin, authMiddleware } = require('../../middlewares/auth');
-const product = require('../../models/product');
+import { Router } from 'express';
+import * as productController from '../../controllers/admin/productController.js';
+import { isAdmin, authMiddleware } from '../../middlewares/auth.js';
+import * as productModel from '../../models/product.js';
 
-router.post('/',authMiddleware,isAdmin,productController.addProduct);
-router.get('/',productController.getAllProducts);
-router.get('/search',productController.searchProduct);
-router.get('/:id',productController.getProduct);
-router.put('/:id',authMiddleware,isAdmin,productController.updateProduct);
-router.delete('/:id',authMiddleware,isAdmin,productController.deleteProduct);
+const router = Router();
 
+router.post('/', authMiddleware, isAdmin, productController.addProduct);
+router.get('/', productController.getAllProducts);
+router.get('/search', productController.searchProduct);
+router.get('/:id', productController.getProduct);
+router.put('/:id', authMiddleware, isAdmin, productController.updateProduct);
+router.delete('/:id', authMiddleware, isAdmin, productController.deleteProduct);
 
-module.exports = router;
+export default router;

@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const IdValidate = (id) => {
     const isValid = mongoose.Types.ObjectId.isValid(id);
-    if(!isValid){
+    if (!isValid) {
         throw new Error("Id is not valid");
     }
-}
+};
 
-module.exports = IdValidate;
+export default IdValidate;

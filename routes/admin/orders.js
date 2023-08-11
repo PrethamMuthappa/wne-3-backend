@@ -1,9 +1,11 @@
-const router = require('express').Router();
-const orderController = require('../../controllers/admin/orderController');
-const authMiddleware = require('../../middlewares/auth');
+import { Router } from 'express';
+import * as orderController from '../../controllers/admin/orderController.js';
+import * as authMiddleware from '../../middlewares/auth.js';
 
-router.get('/',authMiddleware.authMiddleware,authMiddleware.isAdmin,orderController.getAllOrders);
-router.put('/',authMiddleware.authMiddleware,authMiddleware.isAdmin,orderController.updateStatus);
-router.put('/:order_id',authMiddleware.authMiddleware,authMiddleware.isAdmin,orderController.updateStatus);
+const router = Router();
 
-module.exports = router;
+router.get('/', authMiddleware.authMiddleware, authMiddleware.isAdmin, orderController.getAllOrders);
+router.put('/', authMiddleware.authMiddleware, authMiddleware.isAdmin, orderController.updateStatus);
+router.put('/:order_id', authMiddleware.authMiddleware, authMiddleware.isAdmin, orderController.updateStatus);
+
+export default router;

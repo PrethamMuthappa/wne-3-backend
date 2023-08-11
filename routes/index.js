@@ -1,8 +1,10 @@
-const router = require('express').Router();
+import { Router } from 'express';
+import clientRoutes from './client/index.js';
+import adminRoutes from './admin/index.js';
 
+const router = Router();
 
-router.use(require('./client/index'));
-router.use(require('./admin/index'));
+router.use(clientRoutes);
+router.use(adminRoutes);
 
-
-module.exports = router;
+export default router;
