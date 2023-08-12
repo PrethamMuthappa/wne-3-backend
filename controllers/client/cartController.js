@@ -58,16 +58,12 @@ export const getAllCartProducts = asyncHandler(async (req, res) => {
         const cookie = req.cookies;
         const refreshToken = cookie.refreshToken;
         const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
-        console.log(decoded);
-        const user = await userSchema.findById(decoded.id).populate('cart');
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
+        const user = await userSchema.findById(decoded.id);
+       
         res.json({
             data: user.cart
         });
+
     } catch (error) {
         throw new Error(error)
     }
