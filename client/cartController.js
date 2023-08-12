@@ -58,8 +58,8 @@ export const getAllCartProducts = asyncHandler(async (req, res) => {
         const cookie = req.cookies;
         const refreshToken = cookie.refreshToken;
         const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
-        console.log(decoded);
-        const user = await userSchema.findById(decoded.id).populate('cart');
+        
+        const user = await userSchema.findById(decoded.id).populate('cart.productId');
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -69,14 +69,9 @@ export const getAllCartProducts = asyncHandler(async (req, res) => {
             data: user.cart
         });
     } catch (error) {
-        throw new Error(error)
+        throw new Error(error);
     }
 });
-
-
-
-
-
 
 
 /**
@@ -86,8 +81,6 @@ export const getAllCartProducts = asyncHandler(async (req, res) => {
  * @param {object} res: response for quantity update
  * @return {object} : response for quantity update {status, message, data}
  */
-
-
 
 
 export const updateProductQuantity = asyncHandler(async (req, res) => {
@@ -101,17 +94,15 @@ export const updateProductQuantity = asyncHandler(async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const productIdToUpdate = req.body.productId; // Assuming you send the product's _id in the request body
-        const newQuantity = req.body.quantity; // Assuming you send the new quantity in the request body
+        const productIdToUpdate = req.body.productId;
+        const newQuantity = req.body.quantity;
 
-        // Find the index of the product in the cart array
-        const productIndex = user.cart.findIndex(product => product.equals(productIdToUpdate));
+        const productIndex = user.cart.findIndex(product => product.productId.equals(productIdToUpdate));
 
         if (productIndex === -1) {
             return res.status(404).json({ message: "Product not found in cart" });
         }
 
-        // Update the quantity of the product
         user.cart[productIndex].quantity = newQuantity;
         await user.save();
 
@@ -120,8 +111,7 @@ export const updateProductQuantity = asyncHandler(async (req, res) => {
             updatedProduct: user.cart[productIndex]
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error)
     }
 });
 
@@ -139,8 +129,6 @@ export const updateProductQuantity = asyncHandler(async (req, res) => {
  */
 
 
-
-
 export const deleteProduct = asyncHandler(async (req, res) => {
     try {
         const cookie = req.cookies;
@@ -152,16 +140,15 @@ export const deleteProduct = asyncHandler(async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const productIdToDelete = req.body.productId; // Assuming you send the product's _id in the request body
-
-        // Find the index of the product in the cart array
-        const productIndex = user.cart.findIndex(product => product.equals(productIdToDelete));
+        const productIdToDelete = req.body.productId; 
+   
+        const productIndex = user.cart.findIndex(product => product.productId.equals(productIdToDelete));
 
         if (productIndex === -1) {
             return res.status(404).json({ message: "Product not found in cart" });
         }
 
-        // Remove the product from the cart array
+        
         user.cart.splice(productIndex, 1);
         await user.save();
 
@@ -170,8 +157,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
             deletedProductId: productIdToDelete
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+       throw new Error(error)
     }
 });
 
