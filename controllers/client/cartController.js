@@ -73,6 +73,12 @@ export const getAllCartProducts = asyncHandler(async (req, res) => {
     }
 });
 
+
+
+
+
+
+
 /**
  * @description : Cart product quantity update 
  * @access: public
@@ -82,28 +88,30 @@ export const getAllCartProducts = asyncHandler(async (req, res) => {
  */
 
 
+
+
 export const updateProductQuantity = asyncHandler(async (req, res) => {
     try {
         const cookie = req.cookies;
         const refreshToken = cookie.refreshToken;
-        const decoded = jwt.decoded(refreshToken, process.env.SECRET_CLIENT);
+        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
         const user = await userSchema.findById(decoded.id);
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const productIdToUpdate = req.body.productId; 
-        const newQuantity = req.body.quantity;
+        const productIdToUpdate = req.body.productId; // Assuming you send the product's _id in the request body
+        const newQuantity = req.body.quantity; // Assuming you send the new quantity in the request body
 
-        
+        // Find the index of the product in the cart array
         const productIndex = user.cart.findIndex(product => product.equals(productIdToUpdate));
 
         if (productIndex === -1) {
             return res.status(404).json({ message: "Product not found in cart" });
         }
 
-        
+        // Update the quantity of the product
         user.cart[productIndex].quantity = newQuantity;
         await user.save();
 
@@ -112,9 +120,11 @@ export const updateProductQuantity = asyncHandler(async (req, res) => {
             updatedProduct: user.cart[productIndex]
         });
     } catch (error) {
-        throw new Error(error)
+        console.error(error);
+        res.status(500).json({ message: "An error occurred" });
     }
 });
+
 
 
 
@@ -129,26 +139,29 @@ export const updateProductQuantity = asyncHandler(async (req, res) => {
  */
 
 
+
+
 export const deleteProduct = asyncHandler(async (req, res) => {
     try {
         const cookie = req.cookies;
         const refreshToken = cookie.refreshToken;
-        const decoded = jwt.verify(refreshToken, process.env.SECRET_CLIENT);
+        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
         const user = await userSchema.findById(decoded.id);
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const productIdToDelete = req.body.productId; 
-   
+        const productIdToDelete = req.body.productId; // Assuming you send the product's _id in the request body
+
+        // Find the index of the product in the cart array
         const productIndex = user.cart.findIndex(product => product.equals(productIdToDelete));
 
         if (productIndex === -1) {
             return res.status(404).json({ message: "Product not found in cart" });
         }
 
-        
+        // Remove the product from the cart array
         user.cart.splice(productIndex, 1);
         await user.save();
 
