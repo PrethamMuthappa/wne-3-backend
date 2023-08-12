@@ -37,7 +37,8 @@ const userSchema = new Schema({
     }],
     cart: [{
         _id: false,
-        productId: { type: String }
+        productId: { type: mongoose.Schema.Types.ObjectId,ref:'product' },
+        quantity:{type:Number,default:1}
     }],
     userType: {
         type: String,
