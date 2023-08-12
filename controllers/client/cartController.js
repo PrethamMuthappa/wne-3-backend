@@ -1,7 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
 import userSchema from '../../models/user.js';
-
+import productSchema from "../../models/product.js";
+import { login } from './authController.js';
 /**
  * @description : Add new product to cart 
  * @access: public
@@ -13,33 +14,32 @@ export const addProduct = asyncHandler(async (req, res) => {
     try {
         const cookie = req.cookies;
         const refreshToken = cookie.refreshToken;
-        const decoded = jwt.verify(refreshToken, process.env.SECRET_CLIENT);
+        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
         const user = await userSchema.findById(decoded.id);
-        const { shippingAddress, name } = user;
+        const productId = req.params;
         
-        const productExists = await productSchema.findOne({ name: req.body.name });
+        const productExists = await userSchema.findOne({
+            cart:[{
+                '$elemMatch':productId
+            }]
+        });
+        
         if (productExists) {
             return res.json({
                 message: "Product already in cart",
-                product: productExists
             });
         }
-
-        const newProduct = new productSchema({
-            ...req.body
-        });
-
-        user.cart.push(newProduct.id); 
+        console.log(productId);
+        user.cart.push({
+            productId:productId.id,
+        }); 
+        await user.save();
 
         res.json({
             message: "Product added to cart",
-            name,
-            shippingAddress,
-            product: newProduct
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error)
     }
 });
 
@@ -57,7 +57,8 @@ export const getAllCartProducts = asyncHandler(async (req, res) => {
     try {
         const cookie = req.cookies;
         const refreshToken = cookie.refreshToken;
-        const decoded = jwt.verify(refreshToken, process.env.SECRET_CLIENT);
+        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
+        console.log(decoded);
         const user = await userSchema.findById(decoded.id).populate('cart');
 
         if (!user) {
@@ -68,8 +69,7 @@ export const getAllCartProducts = asyncHandler(async (req, res) => {
             data: user.cart
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error)
     }
 });
 
@@ -86,7 +86,7 @@ export const updateProductQuantity = asyncHandler(async (req, res) => {
     try {
         const cookie = req.cookies;
         const refreshToken = cookie.refreshToken;
-        const decoded = jwt.verify(refreshToken, process.env.SECRET_CLIENT);
+        const decoded = jwt.decoded(refreshToken, process.env.SECRET_CLIENT);
         const user = await userSchema.findById(decoded.id);
 
         if (!user) {
@@ -112,8 +112,7 @@ export const updateProductQuantity = asyncHandler(async (req, res) => {
             updatedProduct: user.cart[productIndex]
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error)
     }
 });
 
