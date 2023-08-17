@@ -13,15 +13,58 @@ import IdValidate from '../../utils/validation/idValidation.js';
  */
 export const newOrder = asyncHandler(async (req, res) => {
     try {
-        const user = req.user;
-        const data = new orderSchema({ ...req.body });
+        const cookie = req.cookies;
+        const refreshToken = cookie.refreshToken;
+        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
+        const user = await userSchema.findById(decoded.id).populate('cart.productId');
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+       
+        const orderItems = [];
+
+        
+        let totalAmount = 0;
+
+        
+        for (const cartItem of user.cart) {
+            const product = cartItem.productId;
+            const quantity = cartItem.quantity;
+
+            
+            const totalPrice = product.price * quantity;
+
+            orderItems.push({
+                productId: product._id,
+                quantity: quantity,
+            });
+
+            totalAmount += totalPrice;
+        }
+
+        
+        const data = new orderSchema({
+            customerId: user._id,
+            orderItems: orderItems,
+            totalAmount: totalAmount,
+            ...req.body,
+        });
+
         const result = await data.save();
+
+        
+        user.cart = [];
+        await user.save();
+
         res.json({
             message: 'Order Placed Successfully',
-            orderId: result.id
+            orderId: result._id,
         });
     } catch (error) {
-        throw new Error(error);
+        console.error(error);
+        res.status(500).json({ message: "An error occurred" });
     }
 });
 
@@ -49,7 +92,8 @@ export const orderDetails = asyncHandler(async (req, res) => {
             data: modifiedResponseData
         });
     } catch (error) {
-        throw new Error(error);
+        console.error(error);
+        res.status(500).json({ message: "An error occurred" });
     }
 });
 
@@ -66,12 +110,9 @@ export const cancelOrder = asyncHandler(async (req, res) => {
             message: 'Your order has been cancelled successfully'
         });
     } catch (error) {
-        throw new Error(error);
+        console.error(error);
+        res.status(500).json({ message: "An error occurred" });
     }
 });
 
-export default {
-    newOrder,
-    cancelOrder,
-    orderDetails
-};
+
