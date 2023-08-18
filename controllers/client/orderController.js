@@ -16,18 +16,23 @@ export const newOrder = asyncHandler(async (req, res) => {
     const refreshToken = cookie.refreshToken;
     const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
     const user = await userSchema.findById(decoded.id);
-    
+    console.log(user.cart);
     try {
-        const user = req.user;
-        const data = new orderSchema({ ...req.body });
-        const result = await data.save();
+        const newOrder = new orderSchema({
+            customerId:user.id,
+            orderItems:user.cart
+        });
+        const result = await newOrder.save(); 
+       await userSchema.findByIdAndUpdate(user.id, {
+            $set: { cart: [] }
+        }, { new: true })
         res.json({
             message: 'Order Placed Successfully',
-            orderId: result.id
+            orderId: result.id,
+              
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error);
     }
 });
 
@@ -57,8 +62,7 @@ export const orderDetails = asyncHandler(async (req, res) => {
             data: modifiedResponseData
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error);
     }
 });
 
@@ -75,9 +79,12 @@ export const cancelOrder = asyncHandler(async (req, res) => {
             message: 'Your order has been cancelled successfully'
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error);
     }
 });
 
-
+export default {
+    newOrder,
+    cancelOrder,
+    orderDetails
+};
