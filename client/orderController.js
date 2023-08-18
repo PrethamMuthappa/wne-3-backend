@@ -1,5 +1,5 @@
 import asyncHandler from 'express-async-handler';
-import jwt, { decode } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import userSchema from '../../models/user.js';
 import orderSchema from '../../models/order.js';
 import IdValidate from '../../utils/validation/idValidation.js';
@@ -12,11 +12,6 @@ import IdValidate from '../../utils/validation/idValidation.js';
  * @return {object} : response for order {status, message, data}
  */
 export const newOrder = asyncHandler(async (req, res) => {
-    const cookie = req.cookies;
-    const refreshToken = cookie.refreshToken;
-    const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
-    const user = await userSchema.findById(decoded.id);
-    
     try {
         const user = req.user;
         const data = new orderSchema({ ...req.body });
@@ -26,8 +21,7 @@ export const newOrder = asyncHandler(async (req, res) => {
             orderId: result.id
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error);
     }
 });
 
@@ -40,14 +34,12 @@ export const newOrder = asyncHandler(async (req, res) => {
  */
 export const orderDetails = asyncHandler(async (req, res) => {
     try {
-        const cookie = req.cookies;
-        const refreshToken = cookie.refreshToken;
-        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
+        const user = req.user;
         const { order_id } = req.query;
         IdValidate(order_id);
         const checkOrderId = await orderSchema.findById(order_id);
-        if (checkOrderId.customerId != decoded.id) {
-          return  res.json({
+        if (checkOrderId.customerId != user.id) {
+            res.json({
                 message: 'Invalid order Id'
             });
         }
@@ -57,8 +49,7 @@ export const orderDetails = asyncHandler(async (req, res) => {
             data: modifiedResponseData
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error);
     }
 });
 
@@ -75,9 +66,12 @@ export const cancelOrder = asyncHandler(async (req, res) => {
             message: 'Your order has been cancelled successfully'
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error);
     }
 });
 
-
+export default {
+    newOrder,
+    cancelOrder,
+    orderDetails
+};
