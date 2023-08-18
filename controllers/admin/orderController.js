@@ -1,7 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import orderSchema from '../../models/order.js';
 import IdValidate from '../../utils/validation/idValidation.js';
-
+import jwt from 'jsonwebtoken';
+import userSchema from '../../models/user.js';
 /**
  * @description : List of all orders 
  * @access:private
@@ -13,20 +14,24 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     const page = 1;
     const limit = req.query.limit || 10;
     const skip = (page - 1) * limit;
-    try {
-        const [count, data] = await Promise.all([
-            orderSchema.countDocuments(),
-            orderSchema.find().skip(skip).limit(limit)
-        ]);
-
-        res.json({
-            count,
-            data
-        });
-    } catch (error) {
-        throw new Error(error);
-    }
-});
+    const user = req.user;
+   
+        try {
+            const [count, data] = await Promise.all([
+                orderSchema.countDocuments(),
+                orderSchema.find().skip(skip).limit(limit)
+            ]);
+    
+           return res.json({
+                count,
+                data
+            });
+        
+        }catch (error) {
+            throw new Error(error);
+        }
+   
+      });
 
 /**
  * @description : Update order status of user

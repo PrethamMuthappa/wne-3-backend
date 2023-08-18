@@ -1,5 +1,5 @@
 import asyncHandler from 'express-async-handler';
-import jwt from 'jsonwebtoken';
+import jwt, { decode } from 'jsonwebtoken';
 import userSchema from '../../models/user.js';
 import orderSchema from '../../models/order.js';
 import IdValidate from '../../utils/validation/idValidation.js';
@@ -12,59 +12,32 @@ import IdValidate from '../../utils/validation/idValidation.js';
  * @return {object} : response for order {status, message, data}
  */
 export const newOrder = asyncHandler(async (req, res) => {
+    const user = req.user;
+    
     try {
-        const cookie = req.cookies;
-        const refreshToken = cookie.refreshToken;
-        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
-        const user = await userSchema.findById(decoded.id).populate('cart.productId');
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-       
-        const orderItems = [];
+        if(user.cart.length != 0){
 
         
-        let totalAmount = 0;
-
-        
-        for (const cartItem of user.cart) {
-            const product = cartItem.productId;
-            const quantity = cartItem.quantity;
-
-            
-            const totalPrice = product.price * quantity;
-
-            orderItems.push({
-                productId: product._id,
-                quantity: quantity,
-            });
-
-            totalAmount += totalPrice;
-        }
-
-        
-        const data = new orderSchema({
-            customerId: user._id,
-            orderItems: orderItems,
-            totalAmount: totalAmount,
-            ...req.body,
+        const newOrder = new orderSchema({
+            customerId:user.id,
+            orderItems:user.cart
         });
-
-        const result = await data.save();
-
-        
-        user.cart = [];
-        await user.save();
-
+        const result = await newOrder.save(); 
+       await userSchema.findByIdAndUpdate(user.id, {
+            $set: { cart: [] }
+        }, { new: true })
         res.json({
             message: 'Order Placed Successfully',
-            orderId: result._id,
+            orderId: result.id,    
         });
+     }
+     else{
+        return res.json({
+            message:'cart is empty'
+        })
+     }
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error);
     }
 });
 
@@ -82,7 +55,7 @@ export const orderDetails = asyncHandler(async (req, res) => {
         IdValidate(order_id);
         const checkOrderId = await orderSchema.findById(order_id);
         if (checkOrderId.customerId != user.id) {
-            res.json({
+          return  res.json({
                 message: 'Invalid order Id'
             });
         }
@@ -92,8 +65,7 @@ export const orderDetails = asyncHandler(async (req, res) => {
             data: modifiedResponseData
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error);
     }
 });
 
@@ -110,9 +82,12 @@ export const cancelOrder = asyncHandler(async (req, res) => {
             message: 'Your order has been cancelled successfully'
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+        throw new Error(error);
     }
 });
 
-
+export default {
+    newOrder,
+    cancelOrder,
+    orderDetails
+};

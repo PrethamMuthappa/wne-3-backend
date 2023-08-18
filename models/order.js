@@ -7,10 +7,10 @@ const orderSchema = new Schema({
     sellerId: { type: mongoose.Schema.Types.ObjectId },
     orderItems: [{
         _id: false,
-        productId: { type: mongoose.Schema.Types.ObjectId, ref: 'product', required: true },
-        quantity: { type: Number, required: true },
+        productId: { type: mongoose.Schema.Types.ObjectId, ref: 'product' },
+        quantity: { type: Number },
     }],
-    totalAmount: { type: Number, required: true },
+    totalAmount: { type: Number },
     orderStatus: {
         type: String,
         enum: ['Pending', 'Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'],

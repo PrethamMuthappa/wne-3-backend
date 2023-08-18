@@ -1,6 +1,7 @@
 import UserSchema from '../models/user.js';
 import jwt from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
+import userSchema from '../models/user.js';
 
 const authMiddleware = asyncHandler(async (req, res, next) => {
     let token;
@@ -21,13 +22,25 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
     }
 });
 
+const cookieChecker = asyncHandler(async(req,res,next)=>{
+    const cookie = req.cookies;
+    const refreshToken = cookie.refreshToken;
+    if(cookie != ''){
+        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
+        const user = await userSchema.findById(decoded.id);
+        req.user = user;
+        next();
+    }else{
+        throw new Error('Access Token missing');
+    }
+    })
+
 const isAdmin = asyncHandler(async (req, res, next) => {
-    const { email } = req.user;
-    const adminUser = await UserSchema.findOne({ email });
-    if (adminUser.userType !== 'Admin') {
+    const { userType } = req.user;
+    if (userType !== 'Admin') {
         throw new Error("forbidden");
     }
     next();
 });
 
-export { authMiddleware, isAdmin };
+export { authMiddleware, isAdmin ,cookieChecker};
