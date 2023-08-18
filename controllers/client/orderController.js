@@ -1,5 +1,5 @@
 import asyncHandler from 'express-async-handler';
-import jwt from 'jsonwebtoken';
+import jwt, { decode } from 'jsonwebtoken';
 import userSchema from '../../models/user.js';
 import orderSchema from '../../models/order.js';
 import IdValidate from '../../utils/validation/idValidation.js';
@@ -12,13 +12,24 @@ import IdValidate from '../../utils/validation/idValidation.js';
  * @return {object} : response for order {status, message, data}
  */
 export const newOrder = asyncHandler(async (req, res) => {
+    const cookie = req.cookies;
+    const refreshToken = cookie.refreshToken;
+    const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
+    const user = await userSchema.findById(decoded.id);
+    console.log(user.cart);
     try {
-        const user = req.user;
-        const data = new orderSchema({ ...req.body });
-        const result = await data.save();
+        const newOrder = new orderSchema({
+            customerId:user.id,
+            orderItems:user.cart
+        });
+        const result = await newOrder.save(); 
+       await userSchema.findByIdAndUpdate(user.id, {
+            $set: { cart: [] }
+        }, { new: true })
         res.json({
             message: 'Order Placed Successfully',
-            orderId: result.id
+            orderId: result.id,
+              
         });
     } catch (error) {
         throw new Error(error);
@@ -34,12 +45,14 @@ export const newOrder = asyncHandler(async (req, res) => {
  */
 export const orderDetails = asyncHandler(async (req, res) => {
     try {
-        const user = req.user;
+        const cookie = req.cookies;
+        const refreshToken = cookie.refreshToken;
+        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
         const { order_id } = req.query;
         IdValidate(order_id);
         const checkOrderId = await orderSchema.findById(order_id);
-        if (checkOrderId.customerId != user.id) {
-            res.json({
+        if (checkOrderId.customerId != decoded.id) {
+          return  res.json({
                 message: 'Invalid order Id'
             });
         }

@@ -4,8 +4,7 @@ import * as authMiddleware from '../../middlewares/auth.js';
 
 const router = Router();
 
-router.get('/', authMiddleware.authMiddleware, authMiddleware.isAdmin, orderController.getAllOrders);
-router.put('/', authMiddleware.authMiddleware, authMiddleware.isAdmin, orderController.updateStatus);
-router.put('/:order_id', authMiddleware.authMiddleware, authMiddleware.isAdmin, orderController.updateStatus);
+router.get('/', orderController.getAllOrders);
+router.put('/:order_id', orderController.updateStatus);
 
 export default router;

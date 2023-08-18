@@ -4,8 +4,8 @@ import * as authMiddleware from '../../middlewares/auth.js';
 
 const router = Router();
 
-router.get('/new', authMiddleware.authMiddleware, orderController.newOrder);
-router.get('/cancel', orderController.cancelOrder);
-router.get('/order_details', authMiddleware.authMiddleware, orderController.orderDetails);
+router.post('/new', orderController.newOrder);
+router.delete('/cancel', orderController.cancelOrder);
+router.get('/order_details', orderController.orderDetails);
 
 export default router;

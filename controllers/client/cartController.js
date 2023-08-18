@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import userSchema from '../../models/user.js';
 import productSchema from "../../models/product.js";
 import { login } from './authController.js';
+import mongoose from 'mongoose';
 /**
  * @description : Add new product to cart 
  * @access: public
@@ -17,19 +18,21 @@ export const addProduct = asyncHandler(async (req, res) => {
         const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
         const user = await userSchema.findById(decoded.id);
         const productId = req.params;
+        let isProductInCart = false;
+
+        for (const cartItem of user.cart) {
+            if (cartItem.productId.equals(new mongoose.Types.ObjectId(productId))) {
+                isProductInCart =true;
+                break;
+            }
+           }
         
-        const productExists = await userSchema.findOne({
-            cart:[{
-                '$elemMatch':productId
-            }]
-        });
-        
-        if (productExists) {
+        if (isProductInCart) {
             return res.json({
                 message: "Product already in cart",
             });
         }
-        console.log(productId);
+       
         user.cart.push({
             productId:productId.id,
         }); 
@@ -59,10 +62,20 @@ export const getAllCartProducts = asyncHandler(async (req, res) => {
         const refreshToken = cookie.refreshToken;
         const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
         const user = await userSchema.findById(decoded.id);
-       
-        res.json({
-            data: user.cart
-        });
+
+        const cartWithProductDetails = await Promise.all(
+        user.cart.map(async cartItem => {
+          const product = await productSchema.findById(cartItem.productId);
+            return {
+                productId:product.id,
+                name: product.name,
+                quantity:cartItem.quantity
+                };}));
+
+            res.json({
+                count: cartWithProductDetails.length,
+                data: cartWithProductDetails
+                });
 
     } catch (error) {
         throw new Error(error)
@@ -82,19 +95,21 @@ export const updateProductQuantity = asyncHandler(async (req, res) => {
     try {
         const cookie = req.cookies;
         const refreshToken = cookie.refreshToken;
-        const decoded = jwt.decoded(refreshToken, process.env.SECRET_CLIENT);
+        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
         const user = await userSchema.findById(decoded.id);
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const productIdToUpdate = req.body.productId; 
+        const productIdToUpdate = req.params.id; 
         const newQuantity = req.body.quantity;
 
+      
+        const productIndex = user.cart.findIndex(function (product) {
+                return product.productId.equals(new mongoose.Types.ObjectId(productIdToUpdate));
+            });
         
-        const productIndex = user.cart.findIndex(product => product.equals(productIdToUpdate));
-
         if (productIndex === -1) {
             return res.status(404).json({ message: "Product not found in cart" });
         }
@@ -114,8 +129,6 @@ export const updateProductQuantity = asyncHandler(async (req, res) => {
 
 
 
-
-
 /**
  * @description : Cart Delete 
  * @access: public
@@ -129,32 +142,30 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     try {
         const cookie = req.cookies;
         const refreshToken = cookie.refreshToken;
-        const decoded = jwt.verify(refreshToken, process.env.SECRET_CLIENT);
+        const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
         const user = await userSchema.findById(decoded.id);
+        const productId = req.params;
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        const productIdToDelete = req.body.productId; 
-   
-        const productIndex = user.cart.findIndex(product => product.equals(productIdToDelete));
-
-        if (productIndex === -1) {
-            return res.status(404).json({ message: "Product not found in cart" });
-        }
-
+        const isProductInCart = user.cart.some(cartItem => 
+            cartItem.productId.equals(new mongoose.Types.ObjectId(productId.id))
+        );
         
-        user.cart.splice(productIndex, 1);
-        await user.save();
-
-        res.json({
-            message: "Product deleted from cart",
-            deletedProductId: productIdToDelete
-        });
+        if (isProductInCart) {
+            await userSchema.findByIdAndUpdate(decoded.id, {
+                $pull: { cart: { productId: new mongoose.Types.ObjectId(productId.id) } }
+            }, { new: true });
+        
+            return res.json({
+                message: 'Product deleted from cart'
+            });
+        } else {
+            return res.json({
+                message: "Product not present in cart",
+            });
+        }
+        
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred" });
+       throw new Error(error);
     }
 });
 

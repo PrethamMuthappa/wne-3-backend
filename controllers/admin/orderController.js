@@ -1,7 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import orderSchema from '../../models/order.js';
 import IdValidate from '../../utils/validation/idValidation.js';
-
+import jwt from 'jsonwebtoken';
+import userSchema from '../../models/user.js';
 /**
  * @description : List of all orders 
  * @access:private
@@ -13,19 +14,30 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     const page = 1;
     const limit = req.query.limit || 10;
     const skip = (page - 1) * limit;
+    const cookie = req.cookies;
+    const refreshToken = cookie.refreshToken;
+    const decoded = jwt.decode(refreshToken, process.env.SECRET_CLIENT);
+    const user = await userSchema.findById(decoded.id);
     try {
-        const [count, data] = await Promise.all([
-            orderSchema.countDocuments(),
-            orderSchema.find().skip(skip).limit(limit)
-        ]);
-
-        res.json({
-            count,
-            data
-        });
-    } catch (error) {
+    if (user.userType == 'Admin') {
+        
+            const [count, data] = await Promise.all([
+                orderSchema.countDocuments(),
+                orderSchema.find().skip(skip).limit(limit)
+            ]);
+    
+           return res.json({
+                count,
+                data
+            });
+        } 
+    res.json({
+            message:'UnAuthorized'
+           })
+    }catch (error) {
         throw new Error(error);
     }
+   
 });
 
 /**
